@@ -40,7 +40,7 @@ class Isotope(List):
 
 class AtomSpec(List):
 	grammar = '[', optional(Isotope), [AromaticSymbol, ElementSymbol, WILDCARD], \
-				optional(ChiralClass), optional(HCount), optional(Charge), optional(Class), ']'
+			optional(ChiralClass), optional(HCount), optional(Charge), optional(Class), ']'
 
 class Atom(List):
 	grammar = [OrganicSymbol, AromaticSymbol, AtomSpec, WILDCARD]
@@ -52,9 +52,9 @@ class SMILES(List):
 	pass
 
 SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), \
-									('(', optional(Bond), some(SMILES), ')')])
+					('(', optional(Bond), some(SMILES), ')')])
 
-test_string = 'CBrN1CCC[C@H2+:1]1c2cccnc2'
+test_string = 'CBrN1CCC[C@H2+:3]1c2cccnc2'
 parsed_smiles = parse(test_string, SMILES)
 
 for atom in parsed_smiles:
