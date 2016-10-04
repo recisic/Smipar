@@ -63,12 +63,12 @@ Branch.grammar = grammar = OpenBranch, optional(Bond), some(SMILES), CloseBranch
 SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Branch])
 
 def print_parsed(smiles):
-	for klass in smiles:
-		if isinstance(klass, (OrganicSymbol, AromaticSymbol, AtomSpec, WILDCARD, \
+	for k in smiles:
+		if isinstance(k, (OrganicSymbol, AromaticSymbol, AtomSpec, WILDCARD, \
 			OpenBranch, CloseBranch, RingClosure)):
-			print(klass)
-		elif isinstance(klass, List):
-			print_parsed(klass)
+			print(k.__class__.__name__, ':', k)
+		elif isinstance(k, List):
+			print_parsed(k)
 
 
 # test
