@@ -115,7 +115,7 @@ def parse_class_json(k):
 		elif isinstance(k, RingClosure):
 			return {
 				"type": "ring-closure",
-				"index": k
+				"index": int(k)
 			}
 
 		elif isinstance(k, OpenBranch):
