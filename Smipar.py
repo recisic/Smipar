@@ -125,26 +125,30 @@ def parse_class_json(k):
 			return {"type": "close-branch"}
 
 		elif isinstance(k, AtomSpec):
-			symbol = isotope = chiralClass = hydrogens = charge = klass = "null"
+			symbol = isotope = chiralClass = charge = "null"
+			hydrogens = klass = 0
+			aromatic = "false"
 			for s in k:
 				if isinstance(s, (OrganicSymbol, AromaticSymbol, WILDCARD)):
 					symbol = s
+				elif isinstance(s, AromaticSymbol):
+					aromatic = "true"
 				elif isinstance(s, Isotope):
-					isotope = s
+					isotope = int(s)
 				elif isinstance(s, ChiralClass):
 					chiralClass = s
 				elif isinstance(s, HCount):
-					hydrogens = s
+					hydrogens = int(s)
 				elif isinstance(s, Charge):
 					charge = s
 				elif isinstance(s, Klass):
-					klass = s
+					klass = int(s)
 
 			return {
 				"type": "atom",
 				"symbol": symbol,
 				"isotope": isotope,
-				"aromatic": "null", # TODO
+				"aromatic": aromatic,
 				"chiralClass": chiralClass,
 				"hydrogens": hydrogens,
 				"charge": charge,
@@ -166,6 +170,7 @@ def parser_json(input_object, isParsed = False, isFinal = True):
 		elif isinstance(k, List):
 			parsed_json = parsed_json + parser_json(k, True, False)
 
+	# TODO: needs refactoring
 	if not isFinal:
 		return parsed_json
 	else:
