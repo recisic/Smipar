@@ -78,8 +78,7 @@ def print_parsed(smiles):
 			print_parsed(k)
 
 
-# test
+# parser function
 
-test_string = 'CBrN1C%77C(C%77[13C@TB9H2--:45]1*=c2)cccnc2'
-parsed_smiles = parse(test_string, SMILES)
-print_parsed(parsed_smiles)
+def parser(input_smiles):
+	return parse(input_smiles, SMILES)
