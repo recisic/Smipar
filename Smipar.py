@@ -1,6 +1,4 @@
 from __future__ import print_function, unicode_literals
-# pypeg 2.x is written for python 3 - unicode strings only
-
 from pypeg2 import *
 import re
 
@@ -57,10 +55,14 @@ class Branch(List):
 class SMILES(List):
 	pass
 
+
 # passed grammars (recursive)
 
 Branch.grammar = grammar = OpenBranch, optional(Bond), some(SMILES), CloseBranch
 SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Branch])
+
+
+# print function
 
 def print_parsed(smiles):
 	for k in smiles:
@@ -77,6 +79,7 @@ def print_parsed(smiles):
 
 
 # test
-test_string = 'CBrN1C%77C(C%77[13C@TB9H2-3:45]1*=c2)cccnc2'
+
+test_string = 'CBrN1C%77C(C%77[13C@TB9H2--:45]1*=c2)cccnc2'
 parsed_smiles = parse(test_string, SMILES)
 print_parsed(parsed_smiles)
