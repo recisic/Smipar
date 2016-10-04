@@ -4,46 +4,52 @@ from __future__ import print_function, unicode_literals
 from pypeg2 import *
 import re
 
-class OrganicSymbol(List):
+class OrganicSymbol(str):
 	grammar = re.compile(r'Br?|Cl?|N|O|P|S|F|I')
 
-class AromaticSymbol(List):
+class AromaticSymbol(str):
 	grammar = re.compile(r'as|b|c|n|o|p|se?')
 
-class WILDCARD(List):
-	grammar = '*'
+class WILDCARD(str):
+	grammar = re.compile(r'[*]')
 
-class ElementSymbol(List):
+class ElementSymbol(str):
 	grammar = re.compile(r'[A-Z][a-z]?')
 
-class RingClosure(List):
+class RingClosure(str):
 	grammar = [(ignore('%'), re.compile(r'\d\d')), re.compile(r'\d')]
 
-class ChiralClass(List):
+class ChiralClass(str):
 	grammar = re.compile(r'@(@|TH[12]|AL[12]|SP[1-3]|TB([1-9]|1\d|20)|OH([1-9]|[12]\d|30))?')
 
-class Charge(List):
+class Charge(str):
 	grammar = re.compile(r'[+-]([+-]|[1-9]\d?)?')
 	# warning: '--' and '++' are deprecated
 
-class HCount(List):
+class HCount(str):
 	grammar = ignore('H'), re.compile(r'\d?')
 
-class Class(List):
+class Klass(str):
 	grammar = ignore(':'), re.compile(r'\d+')
 
-class Isotope(List):
+class Isotope(str):
 	grammar = re.compile(r'\d+')
 
 class AtomSpec(List):
 	grammar = '[', optional(Isotope), [AromaticSymbol, ElementSymbol, WILDCARD], \
-			optional(ChiralClass), optional(HCount), optional(Charge), optional(Class), ']'
+		optional(ChiralClass), optional(HCount), optional(Charge), optional(Klass), ']'
 
 class Atom(List):
 	grammar = [OrganicSymbol, AromaticSymbol, AtomSpec, WILDCARD]
 
 class Bond(List):
 	grammar = re.compile(r'[-=#$:/\\.]')
+
+class OpenBranch(str):
+	grammar = re.compile(r'[(]')
+
+class CloseBranch(str):
+	grammar = re.compile(r'[)]')
 
 class Branch(List):
 	pass
@@ -52,11 +58,20 @@ class SMILES(List):
 	pass
 
 # passed grammars (recursive)
-Branch.grammar = grammar = '(', optional(Bond), some(SMILES), ')'
+
+Branch.grammar = grammar = OpenBranch, optional(Bond), some(SMILES), CloseBranch
 SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Branch])
 
+def print_parsed(smiles):
+	for klass in smiles:
+		if isinstance(klass, (OrganicSymbol, AromaticSymbol, AtomSpec, WILDCARD, \
+			OpenBranch, CloseBranch, RingClosure)):
+			print(klass)
+		elif isinstance(klass, List):
+			print_parsed(klass)
+
+
+# test
 test_string = 'CBrN1C%77C(C%77[13C@TB9H2-3:45]1*=c2)cccnc2'
 parsed_smiles = parse(test_string, SMILES)
-
-for atom in parsed_smiles:
-	print(atom)
+print_parsed(parsed_smiles)
