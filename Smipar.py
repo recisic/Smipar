@@ -129,10 +129,10 @@ def parse_class_json(k):
 			hydrogens = klass = 0
 			aromatic = "false"
 			for s in k:
+				if isinstance(s, AromaticSymbol):
+					aromatic = "true"
 				if isinstance(s, (OrganicSymbol, AromaticSymbol, WILDCARD)):
 					symbol = s
-				elif isinstance(s, AromaticSymbol):
-					aromatic = "true"
 				elif isinstance(s, Isotope):
 					isotope = int(s)
 				elif isinstance(s, ChiralClass):
