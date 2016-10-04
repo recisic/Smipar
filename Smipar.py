@@ -64,9 +64,14 @@ SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Br
 
 def print_parsed(smiles):
 	for k in smiles:
-		if isinstance(k, (OrganicSymbol, AromaticSymbol, AtomSpec, WILDCARD, \
+		if isinstance(k, (OrganicSymbol, AromaticSymbol, WILDCARD, \
 			OpenBranch, CloseBranch, RingClosure)):
 			print(k.__class__.__name__, ':', k)
+		elif isinstance(k, AtomSpec):
+			print(k.__class__.__name__, end = ' : [')
+			for s in k:
+				print(s.__class__.__name__, ':', s, end = ", ")
+			print(']')
 		elif isinstance(k, List):
 			print_parsed(k)
 
