@@ -1,6 +1,7 @@
 from __future__ import print_function, unicode_literals
 from pypeg2 import *
-import re
+import re, json
+
 
 class OrganicSymbol(str):
 	grammar = re.compile(r'Br?|Cl?|N|O|P|S|F|I')
@@ -40,11 +41,11 @@ class AtomSpec(List):
 class Atom(List):
 	grammar = [OrganicSymbol, AromaticSymbol, AtomSpec, WILDCARD]
 
-class Bond(List):
+class Bond(str):
 	grammar = re.compile(r'[-=#$:/\\.]')
 
 class OpenBranch(str):
-	grammar = re.compile(r'[(]')
+	grammar = re.compile(r'[()]')
 
 class CloseBranch(str):
 	grammar = re.compile(r'[)]')
@@ -64,10 +65,10 @@ SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Br
 
 # print function
 
-def print_parsed(smiles):
-	for k in smiles:
+def print_parsed(parsed_smiles):
+	for k in parsed_smiles:
 		if isinstance(k, (OrganicSymbol, AromaticSymbol, WILDCARD, \
-			OpenBranch, CloseBranch, RingClosure)):
+			OpenBranch, CloseBranch, RingClosure, Bond)):
 			print(k.__class__.__name__, ':', k)
 		elif isinstance(k, AtomSpec):
 			print(k.__class__.__name__, end = ' : [')
@@ -82,3 +83,90 @@ def print_parsed(smiles):
 
 def parser(input_smiles):
 	return parse(input_smiles, SMILES)
+
+
+# json writer
+
+def parse_class_json(k):
+		if isinstance(k, (OrganicSymbol, WILDCARD)):
+			return {
+				"type": "atom",
+				"symbol": k,
+				"isotope": "null",
+				"aromatic": "false",
+				"chiralClass": "null",
+				"hydrogens": "null",
+				"charge": "null",
+				"klass": 0
+			}
+
+		elif isinstance(k, AromaticSymbol):
+			return {
+				"type": "atom",
+				"symbol": k,
+				"isotope": "null",
+				"aromatic": "true",
+				"chiralClass": "null",
+				"hydrogens": "null",
+				"charge": "null",
+				"klass": 0
+			}
+
+		elif isinstance(k, RingClosure):
+			return {
+				"type": "ring-closure",
+				"index": k
+			}
+
+		elif isinstance(k, OpenBranch):
+			return {"type": "open-branch"}
+
+		elif isinstance(k, CloseBranch):
+			return {"type": "close-branch"}
+
+		elif isinstance(k, AtomSpec):
+			symbol = isotope = chiralClass = hydrogens = charge = klass = "null"
+			for s in k:
+				if isinstance(s, (OrganicSymbol, AromaticSymbol, WILDCARD)):
+					symbol = s
+				elif isinstance(s, Isotope):
+					isotope = s
+				elif isinstance(s, ChiralClass):
+					chiralClass = s
+				elif isinstance(s, HCount):
+					hydrogens = s
+				elif isinstance(s, Charge):
+					charge = s
+				elif isinstance(s, Klass):
+					klass = s
+
+			return {
+				"type": "atom",
+				"symbol": symbol,
+				"isotope": isotope,
+				"aromatic": "null", # TODO
+				"chiralClass": chiralClass,
+				"hydrogens": hydrogens,
+				"charge": charge,
+				"klass": klass
+			}
+
+
+def parser_json(input_object, isParsed = False, isFinal = True):
+	parsed_json = []
+
+	if not isParsed:
+		input_object = parser(input_object)
+	
+	for k in input_object:
+		if isinstance(k, (OrganicSymbol, AromaticSymbol, WILDCARD, \
+			OpenBranch, CloseBranch, RingClosure, AtomSpec)):
+			parsed_json = parsed_json + [parse_class_json(k)]
+
+		elif isinstance(k, List):
+			parsed_json = parsed_json + parser_json(k, True, False)
+
+	if not isFinal:
+		return parsed_json
+	else:
+		return json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': '))
