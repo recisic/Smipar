@@ -45,13 +45,17 @@ class Atom(List):
 class Bond(List):
 	grammar = re.compile(r'[-=#$:/\\.]')
 
+class Branch(List):
+	pass
+
 class SMILES(List):
 	pass
 
-SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), \
-					('(', optional(Bond), some(SMILES), ')')])
+# passed grammars (recursive)
+Branch.grammar = grammar = '(', optional(Bond), some(SMILES), ')'
+SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Branch])
 
-test_string = 'CBrN1C%77CC%77[13C@TB9H2-3:45]1*=c2cccnc2'
+test_string = 'CBrN1C%77C(C%77[13C@TB9H2-3:45]1*=c2)cccnc2'
 parsed_smiles = parse(test_string, SMILES)
 
 for atom in parsed_smiles:
