@@ -139,7 +139,8 @@ def parse_class_json(k):
 				elif isinstance(s, ChiralClass):
 					chiralClass = s
 				elif isinstance(s, HCount):
-					hydrogens = int(s)
+					if (s == ''): hydrogens = 1
+					else: hydrogens = int(s)
 				elif isinstance(s, Charge):
 					charge = s
 				elif isinstance(s, Klass):
