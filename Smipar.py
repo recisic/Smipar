@@ -68,7 +68,7 @@ SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Br
 def print_parsed(parsed_smiles):
 	for k in parsed_smiles:
 		if isinstance(k, (OrganicSymbol, AromaticSymbol, WILDCARD, \
-			OpenBranch, CloseBranch, RingClosure, Bond)):
+			ElementSymbol, OpenBranch, CloseBranch, RingClosure, Bond)):
 			print(k.__class__.__name__, ':', k)
 		elif isinstance(k, AtomSpec):
 			print(k.__class__.__name__, end = ' : [')
@@ -131,7 +131,8 @@ def parse_class_json(k):
 			for s in k:
 				if isinstance(s, AromaticSymbol):
 					aromatic = "true"
-				if isinstance(s, (OrganicSymbol, AromaticSymbol, WILDCARD)):
+				if isinstance(s, (OrganicSymbol, AromaticSymbol, \
+					ElementSymbol, WILDCARD)):
 					symbol = s
 				elif isinstance(s, Isotope):
 					isotope = int(s)
