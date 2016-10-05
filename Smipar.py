@@ -45,7 +45,7 @@ class Bond(str):
 	grammar = re.compile(r'[-=#$:/\\.]')
 
 class OpenBranch(str):
-	grammar = re.compile(r'[()]')
+	grammar = re.compile(r'[(]')
 
 class CloseBranch(str):
 	grammar = re.compile(r'[)]')
