@@ -122,6 +122,9 @@ def parser_list(input_object, isParsed = False):
 
 	parsed_list = []
 
+	if not input_object:
+		return []
+
 	if not isParsed:
 		input_object = parser(input_object)
 
