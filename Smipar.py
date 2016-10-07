@@ -59,7 +59,7 @@ class SMILES(List):
 
 # passed grammars (recursive)
 
-Branch.grammar = grammar = OpenBranch, optional(Bond), some(SMILES), CloseBranch
+Branch.grammar = OpenBranch, optional(Bond), some(SMILES), CloseBranch
 SMILES.grammar = Atom, maybe_some([some(optional(Bond), [Atom, RingClosure]), Branch])
 
 
@@ -70,11 +70,13 @@ def print_parsed(parsed_smiles):
 		if isinstance(k, (OrganicSymbol, AromaticSymbol, WILDCARD, \
 			ElementSymbol, OpenBranch, CloseBranch, RingClosure, Bond)):
 			print(k.__class__.__name__, ':', k)
+		
 		elif isinstance(k, AtomSpec):
 			print(k.__class__.__name__, end = ' : [')
 			for s in k:
 				print(s.__class__.__name__, ':', s, end = ", ")
 			print(']')
+		
 		elif isinstance(k, List):
 			print_parsed(k)
 
@@ -85,9 +87,62 @@ def parser(input_smiles):
 	return parse(input_smiles, SMILES)
 
 
+# parse to list of string
+
+def parser_list(input_object, isParsed = False):
+
+	def parse_class_str(k):
+		class_str = ''
+
+		if isinstance(k, (OrganicSymbol, AromaticSymbol, WILDCARD, \
+			ElementSymbol, OpenBranch, CloseBranch, Bond)):
+			class_str += k
+
+		elif isinstance(k, RingClosure):
+			if(int(k) < 10): class_str += k
+			else: class_str += ''.join(['%', k])
+
+		elif isinstance(k, AtomSpec):
+			class_str += '['
+			for s in k:
+				if isinstance(s, (OrganicSymbol, AromaticSymbol, \
+					ElementSymbol, WILDCARD, Isotope, ChiralClass)):
+					class_str += s
+				elif isinstance(s, HCount):
+					class_str += ''.join(['H', s])
+				elif isinstance(s, Charge):
+					if(s == '++'): class_str += '+2'
+					elif(s == '--'): class_str += '-2'
+					else: class_str += s
+				elif isinstance(s, Klass):
+					class_str += ''.join([':', s])
+			class_str += ']'
+
+		return class_str
+
+	parsed_list = []
+
+	if not isParsed:
+		input_object = parser(input_object)
+
+	for k in input_object:
+
+		if isinstance(k, (OrganicSymbol, AromaticSymbol, WILDCARD, \
+			OpenBranch, CloseBranch, RingClosure, AtomSpec, Bond)):
+			parsed_list.append(parse_class_str(k))
+
+		elif isinstance(k, List):
+			parsed_list += parser_list(k, True)
+
+	return parsed_list
+
+
+
 # json writer
 
-def parse_class_json(k):
+def parser_json(input_object, isParsed = False, isFinal = True):
+
+	def parse_class_json(k):
 		if isinstance(k, (OrganicSymbol, WILDCARD)):
 			return {
 				"type": "atom",
@@ -128,7 +183,7 @@ def parse_class_json(k):
 			symbol = isotope = chiralClass = "null"
 			hydrogens = klass = charge = 0
 			aromatic = "false"
-			
+				
 			for s in k:
 				if isinstance(s, AromaticSymbol):
 					aromatic = "true"
@@ -163,7 +218,6 @@ def parse_class_json(k):
 			}
 
 
-def parser_json(input_object, isParsed = False, isFinal = True):
 	parsed_json = []
 
 	if not isParsed:
